@@ -21,6 +21,7 @@ Each guide is checked against the Frappe source code. Line references point to t
 - [Translatable text: use `_()` with placeholders](guides/translations.md)
 - [Dates and time zones: use `frappe.utils`](guides/dates-and-time-zones.md)
 - [Money and rounding: use `flt` with precision](guides/money-and-rounding.md)
+- [Logging errors: `frappe.log_error` and `frappe.logger`](guides/error-logging.md)
 
 ## Checks
 
@@ -35,6 +36,7 @@ The `checks/` folder has the tests behind these guides. Run them on a local dev 
 | `verify_whitelist.py` | Whitelisted methods | Site, Administrator password |
 | `verify_locking.py` | Row locking | Site |
 | `verify_basics.py` | Translations, dates, money | Site |
+| `verify_error_logging.py` | Error logging | Site and Redis |
 
 ```bash
 cd frappe-bench/sites
@@ -44,6 +46,7 @@ cd frappe-bench/sites
 ../env/bin/python /path/to/checks/verify_whitelist.py your-site.localhost admin-password
 ../env/bin/python /path/to/checks/verify_locking.py your-site.localhost
 ../env/bin/python /path/to/checks/verify_basics.py your-site.localhost
+../env/bin/python /path/to/checks/verify_error_logging.py your-site.localhost
 /path/to/checks/verify_http.sh your-site.localhost admin-password
 ```
 
