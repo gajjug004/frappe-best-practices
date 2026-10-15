@@ -135,4 +135,5 @@ try:
 
 finally:
 	frappe.db.rollback()
+	frappe.clear_document_cache("User", "guide.tester@example.com")
 	frappe.destroy()
