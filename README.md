@@ -16,6 +16,11 @@ Each guide is checked against the Frappe source code. Line references point to t
 - [Background jobs: use `enqueue_after_commit=True`](guides/enqueue-after-commit.md)
 - [Showing errors: `frappe.throw` vs `raise`](guides/throw-vs-raise.md)
 - [Changing another app's DocType: hooks vs `override_doctype_class`](guides/hooks-vs-override-doctype-class.md)
+- [Writing safe whitelisted methods](guides/whitelisted-methods.md)
+- [Counters and stock: lock the row with `for_update=True`](guides/row-locking-for-update.md)
+- [Translatable text: use `_()` with placeholders](guides/translations.md)
+- [Dates and time zones: use `frappe.utils`](guides/dates-and-time-zones.md)
+- [Money and rounding: use `flt` with precision](guides/money-and-rounding.md)
 
 ## Checks
 
@@ -27,12 +32,18 @@ The `checks/` folder has the tests behind these guides. Run them on a local dev 
 | `verify_enqueue.py` | enqueue_after_commit | Site and a running worker |
 | `verify_overrides.py` | Hooks vs override | Site |
 | `verify_http.sh` | Commit in requests, throw vs raise | Running bench, server scripts on |
+| `verify_whitelist.py` | Whitelisted methods | Site, Administrator password |
+| `verify_locking.py` | Row locking | Site |
+| `verify_basics.py` | Translations, dates, money | Site |
 
 ```bash
 cd frappe-bench/sites
 ../env/bin/python /path/to/checks/verify_guides.py your-site.localhost
 ../env/bin/python /path/to/checks/verify_enqueue.py your-site.localhost
 ../env/bin/python /path/to/checks/verify_overrides.py your-site.localhost
+../env/bin/python /path/to/checks/verify_whitelist.py your-site.localhost admin-password
+../env/bin/python /path/to/checks/verify_locking.py your-site.localhost
+../env/bin/python /path/to/checks/verify_basics.py your-site.localhost
 /path/to/checks/verify_http.sh your-site.localhost admin-password
 ```
 
