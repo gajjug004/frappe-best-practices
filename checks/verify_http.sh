@@ -64,3 +64,10 @@ check "frappe.throw sends _server_messages" \
 	"$(curl -s -b "$jar" -H "$host" -X POST "$base/api/method/guide_throw" | python3 -c 'import json,sys;print("_server_messages" in json.load(sys.stdin))')" True
 check "uncaught error sends no _server_messages" \
 	"$(curl -s -b "$jar" -H "$host" -X POST "$base/api/method/guide_raise" | python3 -c 'import json,sys;print("_server_messages" in json.load(sys.stdin))')" False
+
+html_tag() { curl -s -H "$host" "$@" "$base/login" | grep -o '<html[^>]*>'; }
+check "guest Accept-Language ar is right to left" "$(html_tag -H 'Accept-Language: ar')" '<html lang="ar" dir="rtl">'
+check "regional ar-SA falls back to ar" "$(html_tag -H 'Accept-Language: ar-SA')" '<html lang="ar" dir="rtl">'
+check "guest Accept-Language en is left to right" "$(html_tag -H 'Accept-Language: en')" '<html lang="en" dir="ltr">'
+check "preferred_language cookie beats Accept-Language" \
+	"$(html_tag -b preferred_language=fa -H 'Accept-Language: ar')" '<html lang="fa" dir="rtl">'

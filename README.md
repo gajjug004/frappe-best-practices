@@ -19,6 +19,7 @@ Each guide is checked against the Frappe source code. Line references point to t
 - [Writing safe whitelisted methods](guides/whitelisted-methods.md)
 - [Counters and stock: lock the row with `for_update=True`](guides/row-locking-for-update.md)
 - [Translatable text: use `_()` with placeholders](guides/translations.md)
+- [Request language and text direction: use `frappe.local.lang` and `is_rtl()`](guides/request-language.md)
 - [Dates and time zones: use `frappe.utils`](guides/dates-and-time-zones.md)
 - [Money and rounding: use `flt` with precision](guides/money-and-rounding.md)
 - [Logging errors: `frappe.log_error` and `frappe.logger`](guides/error-logging.md)
@@ -32,10 +33,10 @@ The `checks/` folder has the tests behind these guides. Run them on a local dev 
 | `verify_guides.py` | Permissions, set_value, SQL, cache, N+1 | Site |
 | `verify_enqueue.py` | enqueue_after_commit | Site and a running worker |
 | `verify_overrides.py` | Hooks vs override | Site |
-| `verify_http.sh` | Commit in requests, throw vs raise | Running bench, server scripts on |
+| `verify_http.sh` | Commit in requests, throw vs raise, request language | Running bench, server scripts on |
 | `verify_whitelist.py` | Whitelisted methods | Site, Administrator password |
 | `verify_locking.py` | Row locking | Site |
-| `verify_basics.py` | Translations, dates, money | Site |
+| `verify_basics.py` | Translations, request language, dates, money | Site |
 | `verify_error_logging.py` | Error logging | Site and Redis |
 
 ```bash

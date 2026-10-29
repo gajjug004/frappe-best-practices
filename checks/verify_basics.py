@@ -3,7 +3,9 @@ import sys
 
 import frappe
 from frappe import _
+from frappe.translate import get_all_translations
 from frappe.utils import flt, getdate, now_datetime, nowdate
+from frappe.utils.jinja_globals import is_rtl
 
 frappe.init(site=sys.argv[1], sites_path=".")
 frappe.connect()
@@ -25,6 +27,18 @@ try:
 	check("_() with placeholder translates", _("Hello {0}").format(name) == "Hallo Ann")
 	check("_() with f-string does not translate", _(f"Hello {name}") == "Hello Ann")
 	check("format inside _() does not translate", _("Hello {0}".format(name)) == "Hello Ann")
+	frappe.local.lang = "en"
+
+	print("== request language ==")
+	user = frappe.get_doc(
+		{"doctype": "User", "email": "guide-lang@example.com", "first_name": "Guide", "send_welcome_email": 0}
+	).insert()
+	check("new user gets the system language", user.language == frappe.get_system_settings("language"))
+	check("Administrator has no language", not frappe.db.get_value("User", "Administrator", "language"))
+	check("get_all_translations(None) is empty", get_all_translations(None) == {})
+	for lang, rtl in [("ar", True), ("ar-SA", True), ("fa", True), ("he", True), ("ur", True), ("en", False), ("fr", False)]:
+		frappe.local.lang = lang
+		check(f"is_rtl() with {lang} is {rtl}", is_rtl() == rtl)
 	frappe.local.lang = "en"
 
 	print("== dates and time zones ==")
