@@ -15,7 +15,7 @@
 
 ## What we tested
 
-Tested on frappe `develop` with MariaDB. Check: `checks/verify_error_logging.py`.
+Tested on frappe `develop` with MariaDB, after frappe#43000. Check: `checks/verify_error_logging.py`.
 
 | Case | Result |
 |---|---|
@@ -24,7 +24,10 @@ Tested on frappe `develop` with MariaDB. Check: `checks/verify_error_logging.py`
 | `log_error("title", message="...")` | Your message is the error body |
 | `log_error(traceback, "title")`, args swapped | Fixed for you if the first arg has a newline |
 | Title longer than 140 chars | Cut to 140. Full title moved to the error body |
-| `log_error` then `frappe.db.rollback()` | Log is kept. The Error Log table is MyISAM, so rollback does not touch it |
+| `log_error` then `frappe.db.rollback()` | Log is kept. The log database commits on its own, so rollback does not touch it |
+| `frappe.get_all("Error Log", ...)` | Works |
+| `frappe.db.exists("Error Log", ...)` | Returns `None` even when the log exists. No error |
+| `frappe.db.delete("Error Log", ...)` or raw SQL | Raises 1146, table does not exist |
 | Request raises `frappe.ValidationError` (`frappe.throw`) | Not logged. Logged only when `developer_mode` is on |
 | Request raises any 500 error | Logged |
 | Background job raises, even `frappe.throw` | Logged. Title is the job's method path |
@@ -32,6 +35,8 @@ Tested on frappe `develop` with MariaDB. Check: `checks/verify_error_logging.py`
 | `frappe.logger("x").error(...)` | Written to `sites/<site>/logs/x.log` |
 
 - Source: `frappe/utils/error.py`, `log_error` and `log_error_snapshot`. `frappe/app.py`, `handle_exception`. `frappe/utils/background_jobs.py`, `execute_job`. `frappe/utils/logger.py`.
+- On `develop`, Error Log is a virtual DocType. Its rows live in a separate SQLite file, `sites/<site>/private/files/sqlite.db`, not in MariaDB. Access Log, Activity Log, Route History and Web Page View work the same way. Source: frappe#43000, `frappe/utils/sqlite_document.py`, `frappe/utils/logging.py`.
+- On `version-16` and older, Error Log is still a MyISAM table in MariaDB.
 - Error Logs are deleted after 14 days by default. Change it in Log Settings. Source: `default_log_clearing_doctypes` in `frappe/hooks.py`.
 
 ## Do
@@ -49,6 +54,7 @@ Tested on frappe `develop` with MariaDB. Check: `checks/verify_error_logging.py`
 - Do not log `frappe.throw` validation errors. They are user mistakes, not bugs.
 - Do not put the record name or a timestamp in the title. Every log gets a new title and grouping by title breaks.
 - Do not put passwords, tokens, or full API payloads with secrets in `message`. Any System Manager can read Error Logs.
+- Do not read or delete Error Log with `frappe.db.*` or raw SQL. Use `frappe.get_all`, `frappe.get_doc` or `frappe.delete_doc`. In tests, patch `frappe.log_error` and assert the call.
 - Do not use `print` for errors. It goes to the worker console and is lost.
 - Do not expect `logger.info` to show up in production. It is dropped unless you raise the log level.
 

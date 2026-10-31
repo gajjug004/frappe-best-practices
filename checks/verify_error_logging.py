@@ -9,6 +9,7 @@ from frappe.app import handle_exception
 from frappe.core.doctype.error_log.error_log import get_queued_error_log_count
 from frappe.deferred_insert import save_to_db
 from frappe.utils.background_jobs import execute_job
+from frappe.utils.logging import get_log_db, is_log_doctype, log_table
 
 frappe.init(site=sys.argv[1], sites_path=".")
 frappe.connect()
@@ -49,12 +50,31 @@ def fake_request():
 
 def delete_marked_logs():
 	save_to_db(doctype="Error Log")
-	frappe.db.delete("Error Log", {"method": ["like", f"%{MARKER}%"]})
-	frappe.db.delete("Error Log", {"error": ["like", f"%{MARKER}%"]})
-	frappe.db.commit()
+	qb, table = log_table("Error Log")
+	db = get_log_db()
+	db.sql(qb.from_(table).where(table.method.like(f"%{MARKER}%") | table.error.like(f"%{MARKER}%")).delete())
+	db.commit()
 
 
 try:
+	print("== where Error Log rows live ==")
+	check("Error Log is a log DocType", is_log_doctype("Error Log"))
+	frappe.log_error(f"{MARKER} where")
+	check("frappe.get_all finds the log", len(error_logs(f"{MARKER} where")) == 1)
+	check(
+		"frappe.db.exists returns None for the same log, no error",
+		frappe.db.exists("Error Log", {"method": f"{MARKER} where"}) is None,
+	)
+	try:
+		frappe.db.delete("Error Log", {"method": f"{MARKER} where"})
+		check("frappe.db.delete on Error Log raises", False)
+	except Exception as e:
+		check(f"frappe.db.delete on Error Log raises {type(e).__name__}, table missing", "1146" in str(e))
+	frappe.db.rollback()
+	frappe.delete_doc("Error Log", error_logs(f"{MARKER} where")[0].name)
+	check("frappe.delete_doc deletes the log", not error_logs(f"{MARKER} where"))
+	delete_marked_logs()
+
 	print("== log_error inside except ==")
 	try:
 		1 / 0
@@ -93,7 +113,7 @@ try:
 	print("== log then rollback ==")
 	frappe.log_error(f"{MARKER} kept")
 	frappe.db.rollback()
-	check("log survives rollback (Error Log table is MyISAM)", len(error_logs(f"{MARKER} kept")) == 1)
+	check("log survives rollback (log database commits on its own)", len(error_logs(f"{MARKER} kept")) == 1)
 	delete_marked_logs()
 
 	print("== what the request handler logs ==")
