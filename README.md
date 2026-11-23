@@ -24,6 +24,7 @@ Each guide is checked against the Frappe source code. Line references point to t
 - [Dates and time zones: use `frappe.utils`](guides/dates-and-time-zones.md)
 - [Money and rounding: use `flt` with precision](guides/money-and-rounding.md)
 - [Logging errors: `frappe.log_error` and `frappe.logger`](guides/error-logging.md)
+- [Site encryption key: set `encryption_key` before the site serves traffic](guides/encryption-key.md)
 
 ## Checks
 
@@ -40,6 +41,7 @@ The `checks/` folder has the tests behind these guides. Run them on a local dev 
 | `verify_basics.py` | Translations, request language, dates, money | Site |
 | `verify_error_logging.py` | Error logging | Site and Redis |
 | `verify_link_defaults.py` | Link field defaults | Site |
+| `verify_encryption_key.py` | Encryption key race | Site (only reads its config) |
 
 ```bash
 cd frappe-bench/sites
@@ -51,6 +53,7 @@ cd frappe-bench/sites
 ../env/bin/python /path/to/checks/verify_basics.py your-site.localhost
 ../env/bin/python /path/to/checks/verify_error_logging.py your-site.localhost
 ../env/bin/python /path/to/checks/verify_link_defaults.py your-site.localhost
+../env/bin/python /path/to/checks/verify_encryption_key.py your-site.localhost
 /path/to/checks/verify_http.sh your-site.localhost admin-password
 ```
 
